@@ -180,7 +180,7 @@ ASTPointer<ImportDirective> Parser::parseImportDirective()
 	expectToken(Token::Import);
 	ASTPointer<ASTString> path;
 	ASTPointer<ASTString> unitAlias = make_shared<string>();
-	vector<pair<ASTPointer<Identifier>, ASTPointer<ASTString>>> symbolAliases;
+	ImportDirective::SymbolAliasList symbolAliases;
 
 	if (m_scanner->currentToken() == Token::StringLiteral)
 	{
@@ -200,12 +200,14 @@ ASTPointer<ImportDirective> Parser::parseImportDirective()
 			{
 				ASTPointer<Identifier> id = parseIdentifier();
 				ASTPointer<ASTString> alias;
+				SourceLocation aliasLocation;
 				if (m_scanner->currentToken() == Token::As)
 				{
 					expectToken(Token::As);
+					aliasLocation = SourceLocation{position(), endPosition(), source()};
 					alias = expectIdentifierToken();
 				}
-				symbolAliases.emplace_back(move(id), move(alias));
+				symbolAliases.emplace_back(ImportDirective::SymbolAlias{move(id), move(alias), aliasLocation});
 				if (m_scanner->currentToken() != Token::Comma)
 					break;
 				m_scanner->next();
