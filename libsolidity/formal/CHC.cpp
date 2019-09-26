@@ -74,7 +74,7 @@ bool CHC::visit(ContractDefinition const& _contract)
 		else
 			m_stateSorts.push_back(smt::smtSort(*var->type()));
 
-	clearIndices();
+	clearIndices(&_contract);
 
 	string interfaceName = "interface_" + _contract.name() + "_" + to_string(_contract.id());
 	m_interfacePredicate = createSymbolicBlock(interfaceSort(), interfaceName);
@@ -143,19 +143,13 @@ bool CHC::visit(FunctionDefinition const& _function)
 	auto functionPred = predicate(*functionEntryBlock, currentFunctionVariables());
 	auto bodyPred = predicate(*bodyBlock);
 
-	// Store the constraints related to variable initialization.
-	smt::Expression const& initAssertions = m_context.assertions();
-	m_context.pushSolver();
-
-	connectBlocks(interface(), functionPred);
+	if (_function.isConstructor())
+		addRule(functionPred, functionPred.name);
+	else
+		connectBlocks(interface(), functionPred);
 	connectBlocks(functionPred, bodyPred);
 
-	m_context.popSolver();
-
 	setCurrentBlock(*bodyBlock);
-
-	// We need to re-add the constraints that were created for initialization of variables.
-	m_context.addAssertion(initAssertions);
 
 	SMTEncoder::visit(*m_currentFunction);
 
@@ -440,8 +434,7 @@ bool CHC::shouldVisit(FunctionDefinition const& _function) const
 {
 	if (
 		_function.isPublic() &&
-		_function.isImplemented() &&
-		!_function.isConstructor()
+		_function.isImplemented()
 	)
 		return true;
 	return false;
@@ -450,7 +443,8 @@ bool CHC::shouldVisit(FunctionDefinition const& _function) const
 void CHC::setCurrentBlock(smt::SymbolicFunctionVariable const& _block)
 {
 	m_context.popSolver();
-	clearIndices();
+	solAssert(m_currentContract, "");
+	clearIndices(m_currentContract, m_currentFunction);
 	m_context.pushSolver();
 	m_currentBlock = predicate(_block);
 }
@@ -589,19 +583,6 @@ vector<smt::Expression> CHC::currentBlockVariables()
 	for (auto const& var: m_currentFunction->localVariables())
 		paramExprs.push_back(m_context.variable(*var)->currentValue());
 	return currentFunctionVariables() + paramExprs;
-}
-
-void CHC::clearIndices()
-{
-	for (auto const& var: m_stateVariables)
-		m_context.variable(*var)->resetIndex();
-	if (m_currentFunction)
-	{
-		for (auto const& var: m_currentFunction->parameters() + m_currentFunction->returnParameters())
-			m_context.variable(*var)->resetIndex();
-		for (auto const& var: m_currentFunction->localVariables())
-			m_context.variable(*var)->resetIndex();
-	}
 }
 
 string CHC::predicateName(ASTNode const* _node)

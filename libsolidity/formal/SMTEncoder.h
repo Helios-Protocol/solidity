@@ -157,7 +157,9 @@ protected:
 
 	using CallStackEntry = std::pair<CallableDeclaration const*, ASTNode const*>;
 
+	void createStateVariables(ContractDefinition const& _contract);
 	void initializeStateVariables(ContractDefinition const& _contract);
+	void createLocalVariables(FunctionDefinition const& _function);
 	void initializeLocalVariables(FunctionDefinition const& _function);
 	void initializeFunctionCallParameters(CallableDeclaration const& _function, std::vector<smt::Expression> const& _callArgs);
 	void resetStateVariables();
@@ -205,6 +207,9 @@ protected:
 	VariableIndices copyVariableIndices();
 	/// Resets the variable indices.
 	void resetVariableIndices(VariableIndices const& _indices);
+	/// Used when starting a new block.
+	void clearIndices(ContractDefinition const* _contract, FunctionDefinition const* _function = nullptr);
+
 
 	/// @returns variables that are touched in _node's subtree.
 	std::set<VariableDeclaration const*> touchedVariables(ASTNode const& _node);
