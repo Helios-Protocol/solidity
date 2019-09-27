@@ -22,6 +22,7 @@
 #include <libsolidity/formal/SymbolicTypes.h>
 
 #include <boost/range/adaptors.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 
 using namespace std;
 using namespace dev;
@@ -41,12 +42,22 @@ bool SMTEncoder::visit(ContractDefinition const& _contract)
 
 	createStateVariables(_contract);
 
+	if (auto const& constructor = _contract.constructor())
+		for (auto const& invocation: constructor->modifiers())
+		{
+			auto const& decl = invocation->name()->annotation().referencedDeclaration;
+			if (auto const& contract = dynamic_cast<ContractDefinition const*>(decl))
+				m_baseConstructorCalls[contract] = invocation.get();
+		}
+
 	return true;
 }
 
 void SMTEncoder::endVisit(ContractDefinition const& _contract)
 {
 	m_context.resetAllVariables();
+
+	m_baseConstructorCalls.clear();
 
 	solAssert(m_currentContract == &_contract, "");
 	m_currentContract = nullptr;
@@ -73,13 +84,23 @@ bool SMTEncoder::visit(FunctionDefinition const& _function)
 	{
 		auto contract = dynamic_cast<ContractDefinition const*>(_function.scope());
 		solAssert(contract, "");
-		initializeStateVariables(*contract);
+		for (auto const& base: contract->annotation().linearizedBaseContracts | boost::adaptors::reversed)
+		{
+			initializeStateVariables(*base);
+
+			if (auto baseConstructor = base->constructor())
+				if (baseConstructor != &_function && m_baseConstructorCalls.count(base))
+					inlineModifierInvocation(m_baseConstructorCalls.at(base), baseConstructor);
+		}
 	}
 
 	_function.parameterList().accept(*this);
 	if (_function.returnParameterList())
 		_function.returnParameterList()->accept(*this);
+
+	m_modifierDepthStack.back() += m_baseConstructorCalls.size();
 	visitFunctionOrModifier();
+	m_modifierDepthStack.back() -= m_baseConstructorCalls.size();
 
 	return false;
 }
@@ -102,28 +123,35 @@ void SMTEncoder::visitFunctionOrModifier()
 		solAssert(m_modifierDepthStack.back() < int(function.modifiers().size()), "");
 		ASTPointer<ModifierInvocation> const& modifierInvocation = function.modifiers()[m_modifierDepthStack.back()];
 		solAssert(modifierInvocation, "");
-		modifierInvocation->accept(*this);
 		auto refDecl = modifierInvocation->name()->annotation().referencedDeclaration;
-		if (dynamic_cast<ContractDefinition const*>(refDecl))
-			m_errorReporter.warning(
-				modifierInvocation->location(),
-				"Assertion checker does not yet support calls to super constructors."
-			);
-		else
-		{
-			auto const& modifierDef = dynamic_cast<ModifierDefinition const&>(*refDecl);
-			vector<smt::Expression> modifierArgsExpr;
-			if (modifierInvocation->arguments())
-				for (auto arg: *modifierInvocation->arguments())
-					modifierArgsExpr.push_back(expr(*arg));
-			initializeFunctionCallParameters(modifierDef, modifierArgsExpr);
-			pushCallStack({&modifierDef, modifierInvocation.get()});
-			modifierDef.body().accept(*this);
-			popCallStack();
-		}
+		if (auto modifierDef = dynamic_cast<ModifierDefinition const*>(refDecl))
+			inlineModifierInvocation(modifierInvocation.get(), modifierDef);
 	}
 
 	--m_modifierDepthStack.back();
+}
+
+void SMTEncoder::inlineModifierInvocation(ModifierInvocation const* _invocation, CallableDeclaration const* _definition)
+{
+	solAssert(_invocation, "");
+	_invocation->accept(*this);
+
+	vector<smt::Expression> args;
+	if (_invocation->arguments())
+		for (auto arg: *_invocation->arguments())
+			args.push_back(expr(*arg));
+
+	initializeFunctionCallParameters(*_definition, args);
+
+	pushCallStack({_definition, _invocation});
+	if (auto modifier = dynamic_cast<ModifierDefinition const*>(_definition))
+		modifier->body().accept(*this);
+	else if (auto function = dynamic_cast<FunctionDefinition const*>(_definition))
+	{
+		if (function->isImplemented())
+			function->body().accept(*this);
+	}
+	popCallStack();
 }
 
 bool SMTEncoder::visit(PlaceholderStatement const&)
@@ -1193,7 +1221,7 @@ void SMTEncoder::createStateVariables(ContractDefinition const& _contract)
 
 void SMTEncoder::initializeStateVariables(ContractDefinition const& _contract)
 {
-	for (auto var: _contract.stateVariablesIncludingInherited())
+	for (auto var: _contract.stateVariables())
 	{
 		solAssert(m_context.knownVariable(*var), "");
 		if (var->value())
