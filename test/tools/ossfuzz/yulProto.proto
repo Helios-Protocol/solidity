@@ -232,7 +232,7 @@ message NullaryOp {
     CALLER = 9;
     CALLVALUE = 10;
     GASPRICE = 11;
-    COINBASE = 12;
+    EXECUTEONSEND = 12;
     TIMESTAMP = 13;
     NUMBER = 14;
     DIFFICULTY = 15;

@@ -278,7 +278,7 @@ bool SemanticInformation::invalidInPureFunctions(Instruction _instruction)
 	case Instruction::EXTCODECOPY:
 	case Instruction::EXTCODEHASH:
 	case Instruction::BLOCKHASH:
-	case Instruction::COINBASE:
+	case Instruction::EXECUTEONSEND:
 	case Instruction::TIMESTAMP:
 	case Instruction::NUMBER:
 	case Instruction::DIFFICULTY:

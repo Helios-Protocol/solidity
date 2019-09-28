@@ -726,8 +726,8 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 		break;
 	case Type::Category::Magic:
 		// we can ignore the kind of magic and only look at the name of the member
-		if (member == "coinbase")
-			defineExpression(_memberAccess) << "coinbase()\n";
+		if (member == "executeonsend")
+			defineExpression(_memberAccess) << "executeonsend()\n";
 		else if (member == "timestamp")
 			defineExpression(_memberAccess) << "timestamp()\n";
 		else if (member == "difficulty")

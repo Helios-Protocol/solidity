@@ -1264,7 +1264,7 @@ BOOST_AUTO_TEST_CASE(cse_remove_unwanted_masking_of_address)
 		Instruction::ADDRESS,
 		Instruction::CALLER,
 		Instruction::ORIGIN,
-		Instruction::COINBASE
+		Instruction::EXECUTEONSEND
 	};
 	for (auto const& op: ops)
 	{

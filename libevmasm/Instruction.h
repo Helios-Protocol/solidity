@@ -85,7 +85,7 @@ enum class Instruction: uint8_t
 	EXTCODEHASH = 0x3f,	///< get external code hash (from another contract)
 
 	BLOCKHASH = 0x40,	///< get hash of most recent complete block
-	COINBASE,			///< get the block's coinbase address
+	EXECUTEONSEND,	    ///< find out if the transaction executed on send
 	TIMESTAMP,			///< get the block's timestamp
 	NUMBER,				///< get the block's number
 	DIFFICULTY,			///< get the block's difficulty

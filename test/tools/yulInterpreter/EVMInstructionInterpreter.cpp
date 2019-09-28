@@ -240,7 +240,7 @@ u256 EVMInstructionInterpreter::eval(
 			return 0;
 		else
 			return 0xaaaaaaaa + (arg[0] - m_state.blockNumber - 256);
-	case Instruction::COINBASE:
+	case Instruction::EXECUTEONSEND:
 		return m_state.coinbase;
 	case Instruction::TIMESTAMP:
 		return m_state.timestamp;

@@ -1311,8 +1311,8 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 		break;
 	case Type::Category::Magic:
 		// we can ignore the kind of magic and only look at the name of the member
-		if (member == "coinbase")
-			m_context << Instruction::COINBASE;
+		if (member == "executeonsend")
+			m_context << Instruction::EXECUTEONSEND;
 		else if (member == "timestamp")
 			m_context << Instruction::TIMESTAMP;
 		else if (member == "difficulty")

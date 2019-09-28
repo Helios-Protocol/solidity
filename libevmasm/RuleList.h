@@ -271,7 +271,7 @@ std::vector<SimplificationRule<Pattern>> simplificationRuleListPart5(
 		Instruction::ADDRESS,
 		Instruction::CALLER,
 		Instruction::ORIGIN,
-		Instruction::COINBASE
+		Instruction::EXECUTEONSEND
 	})
 	{
 		u256 const mask = (u256(1) << 160) - 1;

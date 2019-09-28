@@ -567,7 +567,7 @@ Compiler Features:
  * Control Flow Graph: Add Control Flow Graph as analysis structure.
  * Control Flow Graph: Warn about returning uninitialized storage pointers.
  * Gas Estimator: Only explore paths with higher gas costs. This reduces accuracy but greatly improves the speed of gas estimation.
- * Optimizer: Remove unnecessary masking of the result of known short instructions (``ADDRESS``, ``CALLER``, ``ORIGIN`` and ``COINBASE``).
+ * Optimizer: Remove unnecessary masking of the result of known short instructions (``ADDRESS``, ``CALLER``, ``ORIGIN`` and ``EXECUTEONSEND``).
  * Parser: Display nicer error messages by showing the actual tokens and not internal names.
  * Parser: Use the entire location of the token instead of only its starting position as source location for parser errors.
  * SMT Checker: Support state variables of integer and bool type.
