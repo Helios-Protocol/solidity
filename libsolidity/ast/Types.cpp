@@ -468,6 +468,7 @@ MemberList::MemberMap AddressType::nativeMembers(ContractDefinition const*) cons
 		{"call", TypeProvider::function(strings{"bytes memory"}, strings{"bool", "bytes memory"}, FunctionType::Kind::BareCall, false, StateMutability::Payable)},
 		{"callcode", TypeProvider::function(strings{"bytes memory"}, strings{"bool", "bytes memory"}, FunctionType::Kind::BareCallCode, false, StateMutability::Payable)},
 		{"delegatecall", TypeProvider::function(strings{"bytes memory"}, strings{"bool", "bytes memory"}, FunctionType::Kind::BareDelegateCall, false, StateMutability::NonPayable)},
+        {"surrogatecall", TypeProvider::function(strings{"bytes memory"}, strings{"bool", "bytes memory"}, FunctionType::Kind::BareSurrogateCall, false, StateMutability::Payable)},
 		{"staticcall", TypeProvider::function(strings{"bytes memory"}, strings{"bool", "bytes memory"}, FunctionType::Kind::BareStaticCall, false, StateMutability::View)}
 	};
 	if (m_stateMutability == StateMutability::Payable)
@@ -2636,9 +2637,11 @@ TypePointers FunctionType::returnParameterTypesWithoutDynamicTypes() const
 	if (
 		m_kind == Kind::External ||
 		m_kind == Kind::DelegateCall ||
+        m_kind == Kind::SurrogateCall ||
 		m_kind == Kind::BareCall ||
 		m_kind == Kind::BareCallCode ||
 		m_kind == Kind::BareDelegateCall ||
+        m_kind == Kind::BareSurrogateCall ||
 		m_kind == Kind::BareStaticCall
 	)
 		for (auto& param: returnParameterTypes)
@@ -2663,9 +2666,11 @@ string FunctionType::richIdentifier() const
 	case Kind::Internal: id += "internal"; break;
 	case Kind::External: id += "external"; break;
 	case Kind::DelegateCall: id += "delegatecall"; break;
+    case Kind::SurrogateCall: id += "surrogatecall"; break;
 	case Kind::BareCall: id += "barecall"; break;
 	case Kind::BareCallCode: id += "barecallcode"; break;
 	case Kind::BareDelegateCall: id += "baredelegatecall"; break;
+    case Kind::BareSurrogateCall: id += "baresurrogatecall"; break;
 	case Kind::BareStaticCall: id += "barestaticcall"; break;
 	case Kind::Creation: id += "creation"; break;
 	case Kind::Send: id += "send"; break;
@@ -2853,6 +2858,7 @@ unsigned FunctionType::sizeOnStack() const
 	case Kind::BareCall:
 	case Kind::BareCallCode:
 	case Kind::BareDelegateCall:
+    case Kind::BareSurrogateCall:
 	case Kind::BareStaticCall:
 	case Kind::Internal:
 	case Kind::ArrayPush:
@@ -2918,6 +2924,7 @@ MemberList::MemberMap FunctionType::nativeMembers(ContractDefinition const*) con
 	case Kind::BareCall:
 	case Kind::BareCallCode:
 	case Kind::BareDelegateCall:
+    case Kind::BareSurrogateCall:
 	case Kind::BareStaticCall:
 	{
 		MemberList::MemberMap members;
@@ -3082,6 +3089,7 @@ bool FunctionType::isBareCall() const
 	case Kind::BareCall:
 	case Kind::BareCallCode:
 	case Kind::BareDelegateCall:
+    case Kind::BareSurrogateCall:
 	case Kind::BareStaticCall:
 	case Kind::ECRecover:
 	case Kind::SHA256:
@@ -3101,6 +3109,7 @@ string FunctionType::externalSignature() const
 	case Kind::Internal:
 	case Kind::External:
 	case Kind::DelegateCall:
+    case Kind::SurrogateCall:
 	case Kind::Event:
 		break;
 	default:
@@ -3240,6 +3249,7 @@ bool FunctionType::padArguments() const
 	case Kind::BareCall:
 	case Kind::BareCallCode:
 	case Kind::BareDelegateCall:
+    case Kind::BareSurrogateCall:
 	case Kind::BareStaticCall:
 	case Kind::SHA256:
 	case Kind::RIPEMD160:

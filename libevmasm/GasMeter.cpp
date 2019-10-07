@@ -139,6 +139,7 @@ GasMeter::GasConsumption GasMeter::estimateMax(AssemblyItem const& _item, bool _
 		case Instruction::CALL:
 		case Instruction::CALLCODE:
 		case Instruction::DELEGATECALL:
+        case Instruction::SURROGATECALL:
 		case Instruction::STATICCALL:
 		{
 			if (_includeExternalCosts)

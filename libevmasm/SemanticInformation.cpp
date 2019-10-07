@@ -165,6 +165,7 @@ bool SemanticInformation::isDeterministic(AssemblyItem const& _item)
 	case Instruction::CALL:
 	case Instruction::CALLCODE:
 	case Instruction::DELEGATECALL:
+    case Instruction::SURROGATECALL:
 	case Instruction::STATICCALL:
 	case Instruction::CREATE:
 	case Instruction::CREATE2:
@@ -239,6 +240,7 @@ bool SemanticInformation::invalidatesMemory(Instruction _instruction)
 	case Instruction::CALL:
 	case Instruction::CALLCODE:
 	case Instruction::DELEGATECALL:
+    case Instruction::SURROGATECALL:
 	case Instruction::STATICCALL:
 		return true;
 	default:
@@ -253,6 +255,7 @@ bool SemanticInformation::invalidatesStorage(Instruction _instruction)
 	case Instruction::CALL:
 	case Instruction::CALLCODE:
 	case Instruction::DELEGATECALL:
+    case Instruction::SURROGATECALL:
 	case Instruction::CREATE:
 	case Instruction::CREATE2:
 	case Instruction::SSTORE:
@@ -308,6 +311,7 @@ bool SemanticInformation::invalidInViewFunctions(Instruction _instruction)
 	case Instruction::CALL:
 	case Instruction::CALLCODE:
 	case Instruction::DELEGATECALL:
+    case Instruction::SURROGATECALL:
 	case Instruction::CREATE2:
 	case Instruction::SELFDESTRUCT:
 		return true;

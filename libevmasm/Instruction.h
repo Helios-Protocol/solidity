@@ -192,7 +192,7 @@ enum class Instruction: uint8_t
 
 	CREATE = 0xf0,		///< create a new account with associated code
 	CALL,				///< message-call into an account
-	CALLCODE,			///< message-call with another account's code only
+	SURROGATECALL,			///< surrogatecall replaced the old codecall, which was removed
 	RETURN,				///< halt execution returning output data
 	DELEGATECALL,		///< like CALLCODE but keeps caller's value and sender
 	CREATE2 = 0xf5,		///< create new account with associated code at address `sha3(0xff + sender + salt + init code) % 2**160`
