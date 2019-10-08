@@ -304,6 +304,7 @@ u256 EVMInstructionInterpreter::eval(
 		return 0xdddddd + arg[1];
 	case Instruction::CALL:
 	case Instruction::CALLCODE:
+    case Instruction::SURROGATECALL:
 		// TODO assign returndata
 		accessMemory(arg[3], arg[4]);
 		accessMemory(arg[5], arg[6]);

@@ -192,11 +192,14 @@ enum class Instruction: uint8_t
 
 	CREATE = 0xf0,		///< create a new account with associated code
 	CALL,				///< message-call into an account
-	SURROGATECALL,			///< surrogatecall replaced the old codecall, which was removed
+	CALLCODE,			///<
 	RETURN,				///< halt execution returning output data
 	DELEGATECALL,		///< like CALLCODE but keeps caller's value and sender
 	CREATE2 = 0xf5,		///< create new account with associated code at address `sha3(0xff + sender + salt + init code) % 2**160`
+    SURROGATECALL = 0xf8, ///< new surrogatecall for helios
 	STATICCALL = 0xfa,	///< like CALL but disallow state modifications
+
+
 
 	REVERT = 0xfd,		///< halt execution, revert state and return output data
 	INVALID = 0xfe,		///< invalid instruction for expressing runtime errors (e.g., division-by-zero)

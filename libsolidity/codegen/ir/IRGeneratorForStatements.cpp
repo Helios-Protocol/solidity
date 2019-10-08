@@ -705,7 +705,7 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 				expressionAsType(_memberAccess.expression(), *TypeProvider::payableAddress()) <<
 				"\n";
 		}
-		else if (set<string>{"call", "callcode", "delegatecall", "staticcall"}.count(member))
+		else if (set<string>{"call", "callcode", "delegatecall", "staticcall", "surrogatecall"}.count(member))
 			defineExpression(_memberAccess) <<
 				expressionAsType(_memberAccess.expression(), *TypeProvider::address()) <<
 				"\n";
@@ -1039,6 +1039,7 @@ void IRGeneratorForStatements::appendExternalFunctionCall(
 
 	bool returnSuccessConditionAndReturndata = funKind == FunctionType::Kind::BareCall || funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::BareStaticCall;
 	bool isDelegateCall = funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::DelegateCall;
+    bool isSurrogateCall = funKind == FunctionType::Kind::BareSurrogateCall || funKind == FunctionType::Kind::SurrogateCall;
 	bool useStaticCall = funKind == FunctionType::Kind::BareStaticCall || (funType.stateMutability() <= StateMutability::View && m_context.evmVersion().hasStaticCall());
 
 	bool haveReturndatacopy = m_context.evmVersion().supportsReturndata();
@@ -1168,6 +1169,8 @@ void IRGeneratorForStatements::appendExternalFunctionCall(
 	// Order is important here, STATICCALL might overlap with DELEGATECALL.
 	if (isDelegateCall)
 		templ("call", "delegatecall");
+	else if (isSurrogateCall)
+        templ("call", "surrogatecall");
 	else if (useStaticCall)
 		templ("call", "staticcall");
 	else

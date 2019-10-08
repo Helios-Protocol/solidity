@@ -589,6 +589,8 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
 		case FunctionType::Kind::External:
 		case FunctionType::Kind::DelegateCall:
 		case FunctionType::Kind::BareCall:
+        case FunctionType::Kind::BareSurrogateCall:
+        case FunctionType::Kind::SurrogateCall:
 		case FunctionType::Kind::BareDelegateCall:
 		case FunctionType::Kind::BareStaticCall:
 			_functionCall.expression().accept(*this);
@@ -1176,6 +1178,8 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 				case FunctionType::Kind::BareCallCode:
 				case FunctionType::Kind::BareDelegateCall:
 				case FunctionType::Kind::BareStaticCall:
+                case FunctionType::Kind::BareSurrogateCall:
+                case FunctionType::Kind::SurrogateCall:
 				case FunctionType::Kind::Transfer:
 				case FunctionType::Kind::Log0:
 				case FunctionType::Kind::Log1:
@@ -1286,7 +1290,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 				true
 			);
 		}
-		else if ((set<string>{"call", "callcode", "delegatecall", "staticcall"}).count(member))
+		else if ((set<string>{"call", "callcode", "delegatecall", "staticcall", "surrogatecall"}).count(member))
 			utils().convertType(
 				*_memberAccess.expression().annotation().type,
 				*TypeProvider::address(),
@@ -1903,6 +1907,7 @@ void ExpressionCompiler::appendExternalFunctionCall(
 
 	bool returnSuccessConditionAndReturndata = funKind == FunctionType::Kind::BareCall || funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::BareStaticCall;
 	bool isDelegateCall = funKind == FunctionType::Kind::BareDelegateCall || funKind == FunctionType::Kind::DelegateCall;
+    //bool isSurrogateCall = funKind == FunctionType::Kind::BareSurrogateCall || funKind == FunctionType::Kind::SurrogateCall;
 	bool useStaticCall = funKind == FunctionType::Kind::BareStaticCall || (_functionType.stateMutability() <= StateMutability::View && m_context.evmVersion().hasStaticCall());
 
 	bool haveReturndatacopy = m_context.evmVersion().supportsReturndata();
