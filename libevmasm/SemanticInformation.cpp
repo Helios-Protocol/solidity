@@ -284,7 +284,7 @@ bool SemanticInformation::invalidInPureFunctions(Instruction _instruction)
 	case Instruction::EXECUTEONSEND:
 	case Instruction::TIMESTAMP:
 	case Instruction::NUMBER:
-	case Instruction::DIFFICULTY:
+	case Instruction::CODEADDRESS:
 	case Instruction::GASLIMIT:
 	case Instruction::STATICCALL:
 	case Instruction::SLOAD:

@@ -246,7 +246,7 @@ u256 EVMInstructionInterpreter::eval(
 		return m_state.timestamp;
 	case Instruction::NUMBER:
 		return m_state.blockNumber;
-	case Instruction::DIFFICULTY:
+	case Instruction::CODEADDRESS:
 		return m_state.difficulty;
 	case Instruction::GASLIMIT:
 		return m_state.gaslimit;

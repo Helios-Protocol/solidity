@@ -3489,7 +3489,6 @@ MemberList::MemberMap MagicType::nativeMembers(ContractDefinition const*) const
 		return MemberList::MemberMap({
 			{"timestamp", TypeProvider::uint256()},
 			{"blockhash", TypeProvider::function(strings{"uint"}, strings{"bytes32"}, FunctionType::Kind::BlockHash, false, StateMutability::View)},
-			{"difficulty", TypeProvider::uint256()},
 			{"number", TypeProvider::uint256()},
 			{"gaslimit", TypeProvider::uint256()}
 		});
@@ -3504,6 +3503,7 @@ MemberList::MemberMap MagicType::nativeMembers(ContractDefinition const*) const
 	case Kind::Transaction:
 		return MemberList::MemberMap({
 		    {"executeonsend", TypeProvider::boolean()},
+            {"codeaddress", TypeProvider::payableAddress()},
 			{"origin", TypeProvider::payableAddress()},
 			{"gasprice", TypeProvider::uint256()}
 		});

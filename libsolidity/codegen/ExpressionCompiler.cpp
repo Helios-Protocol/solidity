@@ -1319,8 +1319,8 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
 			m_context << Instruction::EXECUTEONSEND;
 		else if (member == "timestamp")
 			m_context << Instruction::TIMESTAMP;
-		else if (member == "difficulty")
-			m_context << Instruction::DIFFICULTY;
+		else if (member == "codeaddress")
+			m_context << Instruction::CODEADDRESS;
 		else if (member == "number")
 			m_context << Instruction::NUMBER;
 		else if (member == "gaslimit")

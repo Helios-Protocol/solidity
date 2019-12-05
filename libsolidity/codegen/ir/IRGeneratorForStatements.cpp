@@ -730,8 +730,8 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
 			defineExpression(_memberAccess) << "executeonsend()\n";
 		else if (member == "timestamp")
 			defineExpression(_memberAccess) << "timestamp()\n";
-		else if (member == "difficulty")
-			defineExpression(_memberAccess) << "difficulty()\n";
+		else if (member == "codeaddress")
+			defineExpression(_memberAccess) << "codeaddress()\n";
 		else if (member == "number")
 			defineExpression(_memberAccess) << "number()\n";
 		else if (member == "gaslimit")

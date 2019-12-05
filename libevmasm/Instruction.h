@@ -88,7 +88,7 @@ enum class Instruction: uint8_t
 	EXECUTEONSEND,	    ///< find out if the transaction executed on send
 	TIMESTAMP,			///< get the block's timestamp
 	NUMBER,				///< get the block's number
-	DIFFICULTY,			///< get the block's difficulty
+	CODEADDRESS,		///< get the code address of the current transaction
 	GASLIMIT,			///< get the block's gas limit
 	CHAINID,			///< get the config's chainid param
 	SELFBALANCE,		///< get balance of the current account
