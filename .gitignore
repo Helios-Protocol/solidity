@@ -61,3 +61,6 @@ CMakeLists.txt.user
 # place to put local temporary files
 tmp
 /cmake-build-debug/
+
+upload/
+upload*/
