@@ -180,7 +180,7 @@ ASTPointer<ImportDirective> Parser::parseImportDirective()
 	expectToken(Token::Import);
 	ASTPointer<ASTString> path;
 	ASTPointer<ASTString> unitAlias = make_shared<string>();
-	vector<pair<ASTPointer<Identifier>, ASTPointer<ASTString>>> symbolAliases;
+	ImportDirective::SymbolAliasList symbolAliases;
 
 	if (m_scanner->currentToken() == Token::StringLiteral)
 	{
@@ -198,14 +198,16 @@ ASTPointer<ImportDirective> Parser::parseImportDirective()
 			m_scanner->next();
 			while (true)
 			{
-				ASTPointer<Identifier> id = parseIdentifier();
 				ASTPointer<ASTString> alias;
+				SourceLocation aliasLocation = SourceLocation{position(), endPosition(), source()};
+				ASTPointer<Identifier> id = parseIdentifier();
 				if (m_scanner->currentToken() == Token::As)
 				{
 					expectToken(Token::As);
+					aliasLocation = SourceLocation{position(), endPosition(), source()};
 					alias = expectIdentifierToken();
 				}
-				symbolAliases.emplace_back(move(id), move(alias));
+				symbolAliases.emplace_back(ImportDirective::SymbolAlias{move(id), move(alias), aliasLocation});
 				if (m_scanner->currentToken() != Token::Comma)
 					break;
 				m_scanner->next();
@@ -239,7 +241,7 @@ ASTPointer<ImportDirective> Parser::parseImportDirective()
 ContractDefinition::ContractKind Parser::parseContractKind()
 {
 	ContractDefinition::ContractKind kind;
-	switch(m_scanner->currentToken())
+	switch (m_scanner->currentToken())
 	{
 	case Token::Interface:
 		kind = ContractDefinition::ContractKind::Interface;
@@ -348,7 +350,7 @@ ASTPointer<InheritanceSpecifier> Parser::parseInheritanceSpecifier()
 	if (m_scanner->currentToken() == Token::LParen)
 	{
 		m_scanner->next();
-		arguments.reset(new vector<ASTPointer<Expression>>(parseFunctionCallListArguments()));
+		arguments = make_unique<vector<ASTPointer<Expression>>>(parseFunctionCallListArguments());
 		nodeFactory.markEndPosition();
 		expectToken(Token::RParen);
 	}
@@ -386,7 +388,7 @@ StateMutability Parser::parseStateMutability()
 {
 	StateMutability stateMutability(StateMutability::NonPayable);
 	Token token = m_scanner->currentToken();
-	switch(token)
+	switch (token)
 	{
 		case Token::Payable:
 			stateMutability = StateMutability::Payable;
@@ -809,7 +811,7 @@ ASTPointer<ModifierInvocation> Parser::parseModifierInvocation()
 	if (m_scanner->currentToken() == Token::LParen)
 	{
 		m_scanner->next();
-		arguments.reset(new vector<ASTPointer<Expression>>(parseFunctionCallListArguments()));
+		arguments = make_unique<vector<ASTPointer<Expression>>>(parseFunctionCallListArguments());
 		nodeFactory.markEndPosition();
 		expectToken(Token::RParen);
 	}
@@ -872,7 +874,9 @@ ASTPointer<TypeName> Parser::parseTypeName(bool _allowVar)
 		ASTNodeFactory nodeFactory(*this);
 		nodeFactory.markEndPosition();
 		m_scanner->next();
-		auto stateMutability = boost::make_optional(elemTypeName.token() == Token::Address, StateMutability::NonPayable);
+		auto stateMutability = elemTypeName.token() == Token::Address
+			? optional<StateMutability>{StateMutability::NonPayable}
+			: nullopt;
 		if (TokenTraits::isStateMutabilitySpecifier(m_scanner->currentToken(), false))
 		{
 			if (elemTypeName.token() == Token::Address)
@@ -1610,9 +1614,22 @@ ASTPointer<Expression> Parser::parsePrimaryExpression()
 		}
 		break;
 	case Token::StringLiteral:
+	case Token::HexStringLiteral:
+	{
+		string literal = m_scanner->currentLiteral();
+		Token firstToken = m_scanner->currentToken();
+		while (m_scanner->peekNextToken() == firstToken)
+		{
+			m_scanner->next();
+			literal += m_scanner->currentLiteral();
+		}
 		nodeFactory.markEndPosition();
-		expression = nodeFactory.createNode<Literal>(token, getLiteralAndAdvance());
+		m_scanner->next();
+		if (m_scanner->currentToken() == Token::Illegal)
+			fatalParserError(to_string(m_scanner->currentError()));
+		expression = nodeFactory.createNode<Literal>(token, make_shared<ASTString>(literal));
 		break;
+	}
 	case Token::Identifier:
 		nodeFactory.markEndPosition();
 		expression = nodeFactory.createNode<Identifier>(getLiteralAndAdvance());

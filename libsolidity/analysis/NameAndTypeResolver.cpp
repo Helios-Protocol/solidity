@@ -38,15 +38,17 @@ namespace solidity
 
 NameAndTypeResolver::NameAndTypeResolver(
 	GlobalContext& _globalContext,
+	langutil::EVMVersion _evmVersion,
 	map<ASTNode const*, shared_ptr<DeclarationContainer>>& _scopes,
 	ErrorReporter& _errorReporter
-) :
+):
 	m_scopes(_scopes),
+	m_evmVersion(_evmVersion),
 	m_errorReporter(_errorReporter),
 	m_globalContext(_globalContext)
 {
 	if (!m_scopes[nullptr])
-		m_scopes[nullptr].reset(new DeclarationContainer());
+		m_scopes[nullptr] = make_shared<DeclarationContainer>();
 	for (Declaration const* declaration: _globalContext.declarations())
 	{
 		solAssert(m_scopes[nullptr]->registerDeclaration(*declaration), "Unable to register global declaration.");
@@ -91,13 +93,13 @@ bool NameAndTypeResolver::performImports(SourceUnit& _sourceUnit, map<string, So
 			if (!imp->symbolAliases().empty())
 				for (auto const& alias: imp->symbolAliases())
 				{
-					auto declarations = scope->second->resolveName(alias.first->name(), false);
+					auto declarations = scope->second->resolveName(alias.symbol->name(), false);
 					if (declarations.empty())
 					{
 						m_errorReporter.declarationError(
 							imp->location(),
 							"Declaration \"" +
-							alias.first->name() +
+							alias.symbol->name() +
 							"\" not found in \"" +
 							path +
 							"\" (referenced as \"" +
@@ -109,7 +111,7 @@ bool NameAndTypeResolver::performImports(SourceUnit& _sourceUnit, map<string, So
 					else
 						for (Declaration const* declaration: declarations)
 							if (!DeclarationRegistrationHelper::registerDeclaration(
-								target, *declaration, alias.second.get(), &imp->location(), true, false, m_errorReporter
+								target, *declaration, alias.alias.get(), &alias.location, true, false, m_errorReporter
 							))
 								error = true;
 				}
@@ -324,7 +326,7 @@ bool NameAndTypeResolver::resolveNamesAndTypesInternal(ASTNode& _node, bool _res
 	{
 		if (m_scopes.count(&_node))
 			setScope(&_node);
-		return ReferencesResolver(m_errorReporter, *this, _resolveInsideCode).resolve(_node);
+		return ReferencesResolver(m_errorReporter, *this, m_evmVersion, _resolveInsideCode).resolve(_node);
 	}
 }
 
@@ -523,7 +525,7 @@ bool DeclarationRegistrationHelper::registerDeclaration(
 	{
 		if (dynamic_cast<MagicVariableDeclaration const*>(shadowedDeclaration))
 			_errorReporter.warning(
-				_declaration.location(),
+				*_errorLocation,
 				"This declaration shadows a builtin symbol."
 			);
 		else
@@ -543,7 +545,7 @@ bool DeclarationRegistrationHelper::visit(SourceUnit& _sourceUnit)
 {
 	if (!m_scopes[&_sourceUnit])
 		// By importing, it is possible that the container already exists.
-		m_scopes[&_sourceUnit].reset(new DeclarationContainer(m_currentScope, m_scopes[m_currentScope].get()));
+		m_scopes[&_sourceUnit] = make_shared<DeclarationContainer>(m_currentScope, m_scopes[m_currentScope].get());
 	m_currentScope = &_sourceUnit;
 	return true;
 }
@@ -559,7 +561,7 @@ bool DeclarationRegistrationHelper::visit(ImportDirective& _import)
 	SourceUnit const* importee = _import.annotation().sourceUnit;
 	solAssert(!!importee, "");
 	if (!m_scopes[importee])
-		m_scopes[importee].reset(new DeclarationContainer(nullptr, m_scopes[nullptr].get()));
+		m_scopes[importee] = make_shared<DeclarationContainer>(nullptr, m_scopes[nullptr].get());
 	m_scopes[&_import] = m_scopes[importee];
 	registerDeclaration(_import, false);
 	return true;
@@ -703,7 +705,7 @@ void DeclarationRegistrationHelper::enterNewSubScope(ASTNode& _subScope)
 {
 	map<ASTNode const*, shared_ptr<DeclarationContainer>>::iterator iter;
 	bool newlyAdded;
-	shared_ptr<DeclarationContainer> container(new DeclarationContainer(m_currentScope, m_scopes[m_currentScope].get()));
+	shared_ptr<DeclarationContainer> container{make_shared<DeclarationContainer>(m_currentScope, m_scopes[m_currentScope].get())};
 	tie(iter, newlyAdded) = m_scopes.emplace(&_subScope, move(container));
 	solAssert(newlyAdded, "Unable to add new scope.");
 	m_currentScope = &_subScope;

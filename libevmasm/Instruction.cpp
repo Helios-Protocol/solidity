@@ -315,7 +315,7 @@ static std::map<Instruction, InstructionInfo> const c_instructionInfo =
 	{ Instruction::CALL,		{ "CALL",			0, 7, 1, true, Tier::Special } },
 	{ Instruction::CALLCODE,	{ "CALLCODE",		0, 7, 1, true, Tier::Special } },
 	{ Instruction::RETURN,		{ "RETURN",			0, 2, 0, true, Tier::Zero } },
-	{ Instruction::DELEGATECALL,	{ "DELEGATECALL",	0, 6, 0, true, Tier::Special } },
+	{ Instruction::DELEGATECALL,	{ "DELEGATECALL",	0, 6, 1, true, Tier::Special } },
     { Instruction::SURROGATECALL,	{ "SURROGATECALL",	0, 7, 1, true, Tier::Special } },
 	{ Instruction::STATICCALL,	{ "STATICCALL",		0, 6, 1, true, Tier::Special } },
 	{ Instruction::CREATE2,		{ "CREATE2",		0, 4, 1, true, Tier::Special } },
@@ -358,13 +358,13 @@ string dev::eth::disassemble(bytes const& _mem)
 	stringstream ret;
 	eachInstruction(_mem, [&](Instruction _instr, u256 const& _data) {
 		if (!isValidInstruction(_instr))
-			ret << "0x" << hex << int(_instr) << " ";
+			ret << "0x" << std::uppercase << std::hex << int(_instr) << " ";
 		else
 		{
 			InstructionInfo info = instructionInfo(_instr);
 			ret << info.name << " ";
 			if (info.additional)
-				ret << "0x" << hex << _data << " ";
+				ret << "0x" << std::uppercase << std::hex << _data << " ";
 		}
 	});
 	return ret.str();

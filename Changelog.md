@@ -1,4 +1,66 @@
-### 0.5.12 (unreleased)
+### 0.5.15 (2019-12-17)
+
+Bugfixes:
+ * Yul Optimizer: Fix incorrect redundant load optimization crossing user-defined functions that contain for-loops with memory / storage writes.
+
+
+### 0.5.14 (2019-12-09)
+
+Language Features:
+ * Allow to obtain the selector of public or external library functions via a member ``.selector``.
+ * Inline Assembly: Support constants that reference other constants.
+ * Parser: Allow splitting hexadecimal and regular string literals into multiple parts.
+
+
+Compiler Features:
+ * Commandline Interface: Allow translation from yul / strict assembly to EWasm using ``solc --yul --yul-dialect evm --machine eWasm``
+ * Set the default EVM version to "Istanbul".
+ * SMTChecker: Add support to constructors including constructor inheritance.
+ * Yul: When compiling via Yul, string literals from the Solidity code are kept as string literals if every character is safely printable.
+ * Yul Optimizer: Perform loop-invariant code motion.
+
+
+Bugfixes:
+ * SMTChecker: Fix internal error when using ``abi.decode``.
+ * SMTChecker: Fix internal error when using arrays or mappings of functions.
+ * SMTChecker: Fix internal error in array of structs type.
+ * Version Checker: ``^0`` should match ``0.5.0``, but no prerelease.
+ * Yul: Consider infinite loops and recursion to be not removable.
+
+
+Build System:
+ * Update to emscripten version 1.39.3.
+
+
+### 0.5.13 (2019-11-14)
+
+Language Features:
+ * Allow to obtain the address of a linked library with ``address(LibraryName)``.
+
+
+Compiler Features:
+ * Code Generator: Use SELFBALANCE opcode for ``address(this).balance`` if using Istanbul EVM.
+ * EWasm: Experimental EWasm binary output via ``--ewasm`` and as documented in standard-json.
+ * SMTChecker: Add break/continue support to the CHC engine.
+ * SMTChecker: Support assignments to multi-dimensional arrays and mappings.
+ * SMTChecker: Support inheritance and function overriding.
+ * Standard JSON Interface: Output the storage layout of a contract when artifact ``storageLayout`` is requested.
+ * TypeChecker: List possible candidates when overload resolution fails.
+ * TypeChecker: Disallow variables of library types.
+
+
+Bugfixes:
+ * Code Generator: Fixed a faulty assert that would wrongly trigger for array sizes exceeding unsigned integer.
+ * SMTChecker: Fix internal error when accessing indices of fixed bytes.
+ * SMTChecker: Fix internal error when using function pointers as arguments.
+ * SMTChecker: Fix internal error when implicitly converting string literals to fixed bytes.
+ * Type Checker: Disallow constructor of the same class to be used as modifier.
+ * Type Checker: Treat magic variables as unknown identifiers in inline assembly.
+ * Code Generator: Fix internal error when trying to convert ``super`` to a different type
+
+
+
+### 0.5.12 (2019-10-01)
 
 Language Features:
  * Type Checker: Allow assignment to external function arguments except for reference types.
@@ -10,10 +72,14 @@ Compiler Features:
  * SMTChecker: Add loop support to the CHC engine.
  * Yul Optimizer: Take side-effect-freeness of user-defined functions into account.
  * Yul Optimizer: Remove redundant mload/sload operations.
+ * Yul Optimizer: Use the fact that branch conditions have certain value inside the branch.
 
 
 Bugfixes:
- * Fix internal error when popping a dynamic storage array of mappings.
+ * Code Generator: Fix internal error when popping a dynamic storage array of mappings.
+ * Name Resolver: Fix wrong source location when warning on shadowed aliases in import declarations.
+ * Scanner: Fix multi-line natspec comment parsing with triple slashes when file is encoded with CRLF instead of LF.
+ * Type System: Fix arrays of recursive structs.
  * Yul Optimizer: Fix reordering bug in connection with shifted one and mul/div-instructions in for loop conditions.
 
 
